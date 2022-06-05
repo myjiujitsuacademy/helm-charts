@@ -1,82 +1,75 @@
 # Default values for my-academy.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
-
-replicaCount: 1
-
-image:
-  repository: nginx
-  pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
-
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # Annotations to add to the service account
-  annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name: ""
-
-podAnnotations: {}
-
-podSecurityContext: {}
-  # fsGroup: 2000
-
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
-service:
-  type: ClusterIP
-  port: 80
-
 ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: chart-example.local
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+  host: "myjiujitsuacademy.com"
+  secretName: academy-ingress-secret
+  certificateName: academy-ingress-cert
 
-resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+landingPage:
+  image: "vaggelas/my-public-pages:11.0"
 
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
+nextcloud:
+  host: 'nextcloud.myjiujitsuacademy.com'
+  username: admin
+  password: CCQBqL^wX@vs!4#s
+  persistence:
+    enabled: true
+    storageClass: nd-files-storage
+  lifecycle:
+    postStartCommand: [ "/bin/sh", "-c", "echo \"ServerName my-academy-nextcloud\" | tee -a /etc/apache2/apache2.conf" ]
+  resources:
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    limits:
+      cpu: 600m
+      memory: 8Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+  internalDatabase:
+    enabled: false
 
-nodeSelector: {}
+  configs:
+    custom.config.php: |-
+      <?php
+      $CONFIG = array (
+        'trusted_domains' =>
+        array (
+          0 => 'nextcloud.myjiujitsuacademy.com',
+        ),
+        'trusted_proxies' =>
+        array (
+          0 => '164.68.98.211',
+        ),
+        
+      );
+  postgresql:
 
-tolerations: []
+    enabled: true
+    global:
+      postgresql:
+        auth:
+          username: nextcloud
+          password: z^WqDhDyE%y8dWX3
+          database: nextcloud
+          postgresPassword: "*VR!$hE8L6&cToLF"
 
-affinity: {}
+    primary:
+      containerSecurityContext:
+        enabled: true
+        runAsUser: 1000
+      podSecurityContext:
+        enabled: true
+        fsGroup: 2000
+      persistence:
+
+        enabled: true
+        storageClass: nd-postgres-storage
+
+
+
+
+

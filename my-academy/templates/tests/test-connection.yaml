@@ -11,5 +11,5 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args: ['{{ include "my-academy.fullname" . }}:{{ .Values.service.port }}']
+      args: ['{{ .Release.Name }}-nextjs-web-server:80']
   restartPolicy: Never

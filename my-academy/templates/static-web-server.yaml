@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ .Release.Name }}-nextjs-web-server
+  labels:
+    app: nextjs-web-server
+spec:
+  containers:
+    - image: {{ .Values.landingPage.image }}
+      name: nextjs-web-server
+      ports:
+        - containerPort: 3000
+          protocol: TCP
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-nextjs-web-server
+spec:
+  selector:
+    app: nextjs-web-server
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+
+---
